@@ -80,6 +80,32 @@ Executes GraphQL queries against your configured GraphQL server.
 - `success` (boolean): Whether the query succeeded
 - `error` (string, optional): Error message if failed
 
+### 3. `query-character-predefined`
+
+Executes predefined GraphQL queries using `gql` template literals for common character operations.
+
+**Input:**
+
+- `characterId` (string): The ID of the character
+- `queryType` (string): The type of predefined query to execute:
+  - `"basic"` - Get basic character info (name, level, class, gold)
+  - `"inventory"` - Get character inventory with items and equipment
+  - `"stats"` - Get character stats and skills
+  - `"updateGold"` - Update character gold amount
+  - `"addItem"` - Add item to character inventory
+- `variables` (string, optional): JSON string of additional variables:
+  - For `updateGold`: `{"gold": 1000}`
+  - For `addItem`: `{"itemId": "sword_001", "quantity": 1}`
+
+**Output:**
+
+- `characterId` (string): The character ID
+- `queryType` (string): The type of query executed
+- `query` (string): The actual GraphQL query that was executed
+- `result` (any): The query result
+- `success` (boolean): Whether the query succeeded
+- `error` (string, optional): Error message if failed
+
 ## Example Usage
 
 ### Basic Gold Amount Query
@@ -100,6 +126,46 @@ Executes GraphQL queries against your configured GraphQL server.
 }
 ```
 
+### Predefined GraphQL Query Examples
+
+#### Basic Character Info
+
+```json
+{
+  "characterId": "char_123",
+  "queryType": "basic"
+}
+```
+
+#### Character Inventory
+
+```json
+{
+  "characterId": "char_123",
+  "queryType": "inventory"
+}
+```
+
+#### Update Character Gold
+
+```json
+{
+  "characterId": "char_123",
+  "queryType": "updateGold",
+  "variables": "{\"gold\": 1500}"
+}
+```
+
+#### Add Item to Inventory
+
+```json
+{
+  "characterId": "char_123",
+  "queryType": "addItem",
+  "variables": "{\"itemId\": \"sword_001\", \"quantity\": 1}"
+}
+```
+
 ## GraphQL Integration
 
 The server includes a `GraphQLService` class that handles:
@@ -108,6 +174,26 @@ The server includes a `GraphQLService` class that handles:
 - **Headers**: Automatic Content-Type and custom headers
 - **Error Handling**: Graceful error handling with detailed messages
 - **Timeout Management**: Configurable request timeouts
+
+### Benefits of `gql` Template Literals
+
+The server uses `graphql-tag`'s `gql` template literal for several advantages:
+
+- **Syntax Highlighting**: GraphQL queries get proper syntax highlighting in most editors
+- **Validation**: Queries are validated at build time for syntax errors
+- **Type Safety**: Better TypeScript integration and type checking
+- **IntelliSense**: Enhanced autocomplete and error detection in IDEs
+- **Maintainability**: Queries are centralized and reusable
+- **Performance**: Queries can be optimized and cached by GraphQL clients
+
+### Predefined Queries
+
+The server comes with several predefined queries for common operations:
+
+- **Character Management**: Basic info, inventory, stats
+- **Inventory Operations**: Add items, update gold amounts
+- **Extensible**: Easy to add new predefined queries
+- **Dynamic**: Support for custom variables and parameters
 
 ## Security Notes
 

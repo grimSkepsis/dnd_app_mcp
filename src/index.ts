@@ -2,6 +2,14 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { graphQLService } from "./graphql-client.js";
+import { print } from "graphql";
+import {
+  GET_CHARACTER_BASIC,
+  GET_CHARACTER_INVENTORY,
+  GET_CHARACTER_STATS,
+  UPDATE_CHARACTER_GOLD,
+  ADD_ITEM_TO_INVENTORY,
+} from "./queries.js";
 
 // Create server instance
 const server = new McpServer({
@@ -151,6 +159,159 @@ server.registerTool(
         structuredContent: {
           characterId,
           query,
+          result: null,
+          success: false,
+          error: errorMessage,
+        },
+      });
+    }
+  }
+);
+
+// Add a tool that uses predefined GraphQL queries
+const PredefinedQueryInputSchema = z.object({
+  characterId: z.string().describe("The ID of the character to query"),
+  queryType: z
+    .enum(["basic", "inventory", "stats", "updateGold", "addItem"])
+    .describe("The type of predefined query to execute"),
+  variables: z
+    .string()
+    .optional()
+    .describe(
+      "JSON string of additional variables (e.g., gold amount for updateGold, itemId and quantity for addItem)"
+    ),
+});
+
+type PredefinedQueryInput = z.infer<typeof PredefinedQueryInputSchema>;
+
+const PredefinedQueryOutputSchema = z.object({
+  characterId: z.string().describe("The ID of the character that was queried"),
+  queryType: z.string().describe("The type of query that was executed"),
+  query: z.string().describe("The actual GraphQL query that was executed"),
+  result: z.any().describe("The result from the GraphQL query"),
+  success: z.boolean().describe("Whether the query was successful"),
+  error: z.string().optional().describe("Error message if the query failed"),
+});
+
+type PredefinedQueryOutput = z.infer<typeof PredefinedQueryOutputSchema>;
+
+server.registerTool(
+  "query-character-predefined",
+  {
+    title: "Query character data using predefined GraphQL queries",
+    description:
+      "Execute predefined GraphQL queries for common character operations using gql template literals",
+    inputSchema: PredefinedQueryInputSchema.shape,
+    outputSchema: PredefinedQueryOutputSchema.shape,
+  },
+  async ({ characterId, queryType, variables }: PredefinedQueryInput) => {
+    try {
+      let query: string;
+      let parsedVariables: Record<string, any> = { id: characterId };
+
+      // Select the appropriate predefined query
+      switch (queryType) {
+        case "basic":
+          query = print(GET_CHARACTER_BASIC);
+          break;
+        case "inventory":
+          query = print(GET_CHARACTER_INVENTORY);
+          break;
+        case "stats":
+          query = print(GET_CHARACTER_STATS);
+          break;
+        case "updateGold":
+          query = print(UPDATE_CHARACTER_GOLD);
+          if (variables) {
+            try {
+              const { gold } = JSON.parse(variables);
+              parsedVariables = { id: characterId, gold };
+            } catch (e) {
+              return Promise.resolve({
+                content: [
+                  {
+                    type: "text",
+                    text: `Invalid variables for updateGold. Expected: {"gold": number}`,
+                  },
+                ],
+                structuredContent: {
+                  characterId,
+                  queryType,
+                  query: print(UPDATE_CHARACTER_GOLD),
+                  result: null,
+                  success: false,
+                  error: `Invalid variables for updateGold. Expected: {"gold": number}`,
+                },
+              });
+            }
+          }
+          break;
+        case "addItem":
+          query = print(ADD_ITEM_TO_INVENTORY);
+          if (variables) {
+            try {
+              const { itemId, quantity } = JSON.parse(variables);
+              parsedVariables = { characterId, itemId, quantity };
+            } catch (e) {
+              return Promise.resolve({
+                content: [
+                  {
+                    type: "text",
+                    text: `Invalid variables for addItem. Expected: {"itemId": "string", "quantity": number}`,
+                  },
+                ],
+                structuredContent: {
+                  characterId,
+                  queryType,
+                  query: print(ADD_ITEM_TO_INVENTORY),
+                  result: null,
+                  success: false,
+                  error: `Invalid variables for addItem. Expected: {"itemId": "string", "quantity": number}`,
+                },
+              });
+            }
+          }
+          break;
+        default:
+          throw new Error(`Unknown query type: ${queryType}`);
+      }
+
+      const result = await graphQLService.query(query, parsedVariables);
+
+      return Promise.resolve({
+        content: [
+          {
+            type: "text",
+            text: `Successfully executed ${queryType} query for character ${characterId}. Result: ${JSON.stringify(
+              result,
+              null,
+              2
+            )}`,
+          },
+        ],
+        structuredContent: {
+          characterId,
+          queryType,
+          query,
+          result,
+          success: true,
+        },
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      return Promise.resolve({
+        content: [
+          {
+            type: "text",
+            text: `Failed to execute ${queryType} query for character ${characterId}: ${errorMessage}`,
+          },
+        ],
+        structuredContent: {
+          characterId,
+          queryType,
+          query: "",
           result: null,
           success: false,
           error: errorMessage,
