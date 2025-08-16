@@ -72,50 +72,78 @@ server.registerTool(
 
 const traitSchema = z.object({
   name: z.string().describe("The name of the trait"),
-  description: z.string().optional().describe("The description of the trait"),
+  description: z
+    .string()
+    .optional()
+    .nullable()
+    .describe("The description of the trait"),
 });
 
 const getItemTraitsOutputSchema = z.object({
   traits: z.array(traitSchema),
+  success: z.boolean().describe("Whether the query was successful"),
+  error: z.string().optional().describe("Error message if the query failed"),
 });
 
 server.registerTool(
   "get-item-traits",
   {
     title: "Get list of possible traits for an item",
-    description: "Get list of possible traits for an item",
+    description:
+      "Get list of possible traits for an item by querying the GraphQL server",
     outputSchema: getItemTraitsOutputSchema.shape,
   },
-  () => {
-    return Promise.resolve({
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify({
-            traits: [
-              {
-                name: "Fire",
-                description: "The item is on fire",
-              },
-              {
-                name: "Water",
-              },
-            ],
-          }),
-        },
-      ],
-      structuredContent: {
-        traits: [
+  async () => {
+    try {
+      const query = `
+        query traitListing {
+          items {
+            getTraits {
+              name
+              description
+            }
+          }
+        }
+      `;
+
+      const result = await graphQLService.query(query);
+
+      // Extract traits from the nested structure
+      const traits = result?.items?.getTraits || [];
+
+      return Promise.resolve({
+        content: [
           {
-            name: "Fire",
-            description: "The item is on fire",
-          },
-          {
-            name: "Water",
+            type: "text",
+            text: JSON.stringify({
+              traits,
+              success: true,
+            }),
           },
         ],
-      },
-    });
+        structuredContent: {
+          traits,
+          success: true,
+        },
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      return Promise.resolve({
+        content: [
+          {
+            type: "text",
+            text: `Failed to retrieve item traits: ${errorMessage}`,
+          },
+        ],
+        structuredContent: {
+          traits: [],
+          success: false,
+          error: errorMessage,
+        },
+      });
+    }
   }
 );
 

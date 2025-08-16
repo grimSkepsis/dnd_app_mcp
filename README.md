@@ -62,7 +62,21 @@ Gets the gold amount for a character by ID.
 - `characterId` (string): The character ID
 - `goldAmount` (number): The amount of gold
 
-### 2. `query-character-graphql`
+### 2. `get-item-traits`
+
+Gets a list of possible traits for items by querying the GraphQL server.
+
+**Input:**
+
+- No input required
+
+**Output:**
+
+- `traits` (array): List of available item traits with names and descriptions
+- `success` (boolean): Whether the query was successful
+- `error` (string, optional): Error message if the query failed
+
+### 3. `query-character-graphql`
 
 Executes GraphQL queries against your configured GraphQL server.
 
@@ -133,6 +147,14 @@ Discovers the available GraphQL schema by running introspection against the endp
   "characterId": "char_123"
 }
 ```
+
+### Get Item Traits
+
+```json
+{}
+```
+
+**Note:** This tool requires no input parameters and will query the GraphQL server for available item traits.
 
 ### GraphQL Query Example
 
