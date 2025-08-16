@@ -12,7 +12,7 @@ export interface GraphQLConfig {
 }
 
 export const graphQLConfig: GraphQLConfig = {
-  endpoint: process.env.GRAPHQL_ENDPOINT || "http://localhost:4000/graphql",
+  endpoint: process.env.GRAPHQL_ENDPOINT || "http://localhost:3002/graphql",
   apiKey: process.env.GRAPHQL_API_KEY,
   authHeader: process.env.GRAPHQL_AUTH_HEADER,
   authValue: process.env.GRAPHQL_AUTH_VALUE,
