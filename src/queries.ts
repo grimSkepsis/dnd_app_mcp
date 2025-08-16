@@ -1,5 +1,96 @@
 import { gql } from "graphql-tag";
 
+// Standard GraphQL introspection query to discover the schema
+export const INTROSPECTION_QUERY = gql`
+  query IntrospectionQuery {
+    __schema {
+      queryType {
+        name
+        fields {
+          name
+          description
+          args {
+            name
+            description
+            type {
+              name
+              kind
+              ofType {
+                name
+                kind
+              }
+            }
+          }
+          type {
+            name
+            kind
+            ofType {
+              name
+              kind
+            }
+          }
+        }
+      }
+      mutationType {
+        name
+        fields {
+          name
+          description
+          args {
+            name
+            description
+            type {
+              name
+              kind
+              ofType {
+                name
+                kind
+              }
+            }
+          }
+          type {
+            name
+            kind
+            ofType {
+              name
+              kind
+            }
+          }
+        }
+      }
+      types {
+        name
+        description
+        kind
+        fields {
+          name
+          description
+          type {
+            name
+            kind
+            ofType {
+              name
+              kind
+            }
+          }
+        }
+        inputFields {
+          name
+          description
+          type {
+            name
+            kind
+            ofType {
+              name
+              kind
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 // Example GraphQL queries using gql template literals
 export const GET_CHARACTER_BASIC = gql`
   query GetCharacterBasic($id: ID!) {

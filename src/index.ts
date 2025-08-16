@@ -3,12 +3,14 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { graphQLService } from "./graphql-client.js";
 import { print } from "graphql";
+import { graphQLConfig } from "./config.js";
 import {
   GET_CHARACTER_BASIC,
   GET_CHARACTER_INVENTORY,
   GET_CHARACTER_STATS,
   UPDATE_CHARACTER_GOLD,
   ADD_ITEM_TO_INVENTORY,
+  INTROSPECTION_QUERY,
 } from "./queries.js";
 
 // Create server instance
@@ -320,6 +322,193 @@ server.registerTool(
     }
   }
 );
+
+// Add a GraphQL introspection tool
+const IntrospectionInputSchema = z.object({
+  endpoint: z
+    .string()
+    .optional()
+    .describe(
+      "Optional custom GraphQL endpoint to introspect (defaults to configured endpoint)"
+    ),
+  includeTypes: z
+    .boolean()
+    .optional()
+    .describe("Whether to include detailed type information (default: true)"),
+});
+
+type IntrospectionInput = z.infer<typeof IntrospectionInputSchema>;
+
+const IntrospectionOutputSchema = z.object({
+  endpoint: z.string().describe("The endpoint that was introspected"),
+  queries: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        args: z.array(
+          z.object({
+            name: z.string(),
+            description: z.string().optional(),
+            type: z.string(),
+          })
+        ),
+        returnType: z.string(),
+      })
+    )
+    .describe("Available queries in the schema"),
+  mutations: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        args: z.array(
+          z.object({
+            name: z.string(),
+            description: z.string().optional(),
+            type: z.string(),
+          })
+        ),
+        returnType: z.string(),
+      })
+    )
+    .describe("Available mutations in the schema"),
+  types: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        kind: z.string(),
+        fields: z
+          .array(
+            z.object({
+              name: z.string(),
+              description: z.string().optional(),
+              type: z.string(),
+            })
+          )
+          .optional(),
+      })
+    )
+    .describe("Available types in the schema"),
+  success: z.boolean().describe("Whether the introspection was successful"),
+  error: z
+    .string()
+    .optional()
+    .describe("Error message if introspection failed"),
+});
+
+type IntrospectionOutput = z.infer<typeof IntrospectionOutputSchema>;
+
+server.registerTool(
+  "introspect-graphql-schema",
+  {
+    title: "Introspect GraphQL schema to discover available operations",
+    description:
+      "Run GraphQL introspection to see what queries, mutations, and types are available in the schema",
+    inputSchema: IntrospectionInputSchema.shape,
+    outputSchema: IntrospectionOutputSchema.shape,
+  },
+  async ({ endpoint, includeTypes = true }: IntrospectionInput) => {
+    try {
+      const targetEndpoint = endpoint || graphQLConfig.endpoint;
+      const query = print(INTROSPECTION_QUERY);
+
+      const result = await graphQLService.query(query);
+
+      // Parse and format the introspection result
+      const schema = result.__schema;
+      const queries = schema.queryType?.fields || [];
+      const mutations = schema.mutationType?.fields || [];
+      const types = includeTypes ? schema.types || [] : [];
+
+      // Format queries
+      const formattedQueries = queries.map((q: any) => ({
+        name: q.name,
+        description: q.description,
+        args: (q.args || []).map((arg: any) => ({
+          name: arg.name,
+          description: arg.description,
+          type: getTypeName(arg.type),
+        })),
+        returnType: getTypeName(q.type),
+      }));
+
+      // Format mutations
+      const formattedMutations = mutations.map((m: any) => ({
+        name: m.name,
+        description: m.description,
+        args: (m.args || []).map((arg: any) => ({
+          name: arg.name,
+          description: arg.description,
+          type: getTypeName(arg.type),
+        })),
+        returnType: getTypeName(m.type),
+      }));
+
+      // Format types
+      const formattedTypes = types.map((t: any) => ({
+        name: t.name,
+        description: t.description,
+        kind: t.kind,
+        fields: t.fields
+          ? t.fields.map((f: any) => ({
+              name: f.name,
+              description: f.description,
+              type: getTypeName(f.type),
+            }))
+          : undefined,
+      }));
+
+      return Promise.resolve({
+        content: [
+          {
+            type: "text",
+            text: `Successfully introspected GraphQL schema at ${targetEndpoint}.\n\nAvailable Queries: ${formattedQueries.length}\nAvailable Mutations: ${formattedMutations.length}\nAvailable Types: ${formattedTypes.length}`,
+          },
+        ],
+        structuredContent: {
+          endpoint: targetEndpoint,
+          queries: formattedQueries,
+          mutations: formattedMutations,
+          types: formattedTypes,
+          success: true,
+        },
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      return Promise.resolve({
+        content: [
+          {
+            type: "text",
+            text: `Failed to introspect GraphQL schema: ${errorMessage}`,
+          },
+        ],
+        structuredContent: {
+          endpoint: endpoint || graphQLConfig.endpoint,
+          queries: [],
+          mutations: [],
+          types: [],
+          success: false,
+          error: errorMessage,
+        },
+      });
+    }
+  }
+);
+
+// Helper function to extract type names from GraphQL types
+function getTypeName(type: any): string {
+  if (type.kind === "NON_NULL") {
+    return `${getTypeName(type.ofType)}!`;
+  }
+  if (type.kind === "LIST") {
+    return `[${getTypeName(type.ofType)}]`;
+  }
+  return type.name || type.kind;
+}
 
 async function main() {
   const transport = new StdioServerTransport();

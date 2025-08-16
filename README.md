@@ -106,6 +106,24 @@ Executes predefined GraphQL queries using `gql` template literals for common cha
 - `success` (boolean): Whether the query succeeded
 - `error` (string, optional): Error message if failed
 
+### 4. `introspect-graphql-schema`
+
+Discovers the available GraphQL schema by running introspection against the endpoint.
+
+**Input:**
+
+- `endpoint` (string, optional): Custom GraphQL endpoint to introspect (defaults to configured endpoint)
+- `includeTypes` (boolean, optional): Whether to include detailed type information (default: true)
+
+**Output:**
+
+- `endpoint` (string): The endpoint that was introspected
+- `queries` (array): Available queries with names, descriptions, arguments, and return types
+- `mutations` (array): Available mutations with names, descriptions, arguments, and return types
+- `types` (array): Available types with names, descriptions, kinds, and field information
+- `success` (boolean): Whether the introspection was successful
+- `error` (string, optional): Error message if introspection failed
+
 ## Example Usage
 
 ### Basic Gold Amount Query
@@ -166,6 +184,23 @@ Executes predefined GraphQL queries using `gql` template literals for common cha
 }
 ```
 
+#### Introspect GraphQL Schema
+
+```json
+{
+  "includeTypes": true
+}
+```
+
+**Or with a custom endpoint:**
+
+```json
+{
+  "endpoint": "https://api.example.com/graphql",
+  "includeTypes": false
+}
+```
+
 ## GraphQL Integration
 
 The server includes a `GraphQLService` class that handles:
@@ -194,6 +229,24 @@ The server comes with several predefined queries for common operations:
 - **Inventory Operations**: Add items, update gold amounts
 - **Extensible**: Easy to add new predefined queries
 - **Dynamic**: Support for custom variables and parameters
+
+### GraphQL Introspection
+
+The server includes a powerful introspection tool that allows you to:
+
+- **Discover Available Operations**: See all queries and mutations in the schema
+- **Understand Data Types**: Explore the structure of objects, inputs, and enums
+- **Validate Queries**: Ensure your queries match the actual schema
+- **Documentation**: Access field descriptions and argument information
+- **Schema Evolution**: Keep track of changes in your GraphQL API
+
+**Benefits of Introspection:**
+
+- **Self-Documenting**: GraphQL APIs are self-documenting through introspection
+- **Tool Integration**: Many GraphQL tools use introspection for better UX
+- **Development**: Faster development with schema discovery
+- **Testing**: Validate queries against the actual schema
+- **Debugging**: Understand why queries might be failing
 
 ## Security Notes
 
