@@ -2,16 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { graphQLService } from "./graphql-client.js";
-import { print } from "graphql";
-import { graphQLConfig } from "./config.js";
-import {
-  GET_CHARACTER_BASIC,
-  GET_CHARACTER_INVENTORY,
-  GET_CHARACTER_STATS,
-  UPDATE_CHARACTER_GOLD,
-  ADD_ITEM_TO_INVENTORY,
-  INTROSPECTION_QUERY,
-} from "./queries.js";
 
 // Create server instance
 const server = new McpServer({
@@ -38,10 +28,6 @@ const getInventoryGoldAmountOutputSchema = z.object({
     .describe("The ID of the character to get inventory for"),
   goldAmount: z.number().describe("The amount of gold in the inventory"),
 });
-
-type GetInventoryGoldAmountOutput = z.infer<
-  typeof getInventoryGoldAmountOutputSchema
->;
 
 server.registerTool(
   "get-inventory-gold-amount",

@@ -25,9 +25,9 @@ export class GraphQLService {
     });
   }
 
-  async query<T = any>(
+  async query<T = unknown>(
     query: string,
-    variables?: Record<string, any>
+    variables?: Record<string, unknown>
   ): Promise<T> {
     try {
       const result = await this.client.request<T>(query, variables);
@@ -42,9 +42,9 @@ export class GraphQLService {
     }
   }
 
-  async mutation<T = any>(
+  async mutation<T = unknown>(
     mutation: string,
-    variables?: Record<string, any>
+    variables?: Record<string, unknown>
   ): Promise<T> {
     try {
       const result = await this.client.request<T>(mutation, variables);
