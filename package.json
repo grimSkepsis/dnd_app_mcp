@@ -9,7 +9,9 @@
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
     "start": "node build/index.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "codegen": "graphql-codegen",
+    "codegen:watch": "graphql-codegen --watch"
   },
   "files": [
     "build"
@@ -28,6 +30,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-graphql-request": "^6.3.0",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
     "@types/node": "^22.14.1",
     "eslint": "^9.33.0",
     "globals": "^16.3.0",

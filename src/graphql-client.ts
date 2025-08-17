@@ -1,5 +1,7 @@
 import { GraphQLClient } from "graphql-request";
 import { graphQLConfig } from "./config.js";
+// Import generated types (these will be created after running codegen)
+// import { GeneratedTypes } from "./generated/graphql.js";
 
 export class GraphQLService {
   private client: GraphQLClient;
@@ -25,6 +27,7 @@ export class GraphQLService {
     });
   }
 
+  // Generic query method with better typing
   async query<T = unknown>(
     query: string,
     variables?: Record<string, unknown>
@@ -42,6 +45,7 @@ export class GraphQLService {
     }
   }
 
+  // Generic mutation method with better typing
   async mutation<T = unknown>(
     mutation: string,
     variables?: Record<string, unknown>
@@ -58,6 +62,22 @@ export class GraphQLService {
       );
     }
   }
+
+  // Typed query method using generated types
+  // async typedQuery<TData, TVariables>(
+  //   document: string,
+  //   variables?: TVariables
+  // ): Promise<TData> {
+  //   return this.query<TData>(document, variables);
+  // }
+
+  // Typed mutation method using generated types
+  // async typedMutation<TData, TVariables>(
+  //   document: string,
+  //   variables?: TVariables
+  // ): Promise<TData> {
+  //   return this.mutation<TData>(document, variables);
+  // }
 }
 
 // Export singleton instance
