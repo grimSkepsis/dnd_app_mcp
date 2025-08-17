@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { graphQLService } from "./graphql-client.js";
-import { getSdk } from "./generated/graphql.js";
+import { registerGetItemTraitsTool } from "./tools/get-item-traits.js";
+import { registerGetInventoryGoldAmountTool } from "./tools/get-inventory-gold-amount.js";
 
 // Create server instance
 const server = new McpServer({
@@ -14,122 +14,8 @@ const server = new McpServer({
   },
 });
 
-const GetInventoryGoldAmountInputSchema = z.object({
-  characterId: z
-    .string()
-    .describe("The ID of the character to get inventory for"),
-});
-type GetInventoryGoldAmountInput = z.infer<
-  typeof GetInventoryGoldAmountInputSchema
->;
-
-const getInventoryGoldAmountOutputSchema = z.object({
-  characterId: z
-    .string()
-    .describe("The ID of the character to get inventory for"),
-  goldAmount: z.number().describe("The amount of gold in the inventory"),
-});
-
-server.registerTool(
-  "get-inventory-gold-amount",
-  {
-    title: "Get inventory gold amount for a character by character id",
-    description: "Get inventory gold amount for a character by character id",
-    inputSchema: GetInventoryGoldAmountInputSchema.shape,
-    outputSchema: getInventoryGoldAmountOutputSchema.shape,
-  },
-  ({ characterId }: GetInventoryGoldAmountInput) => {
-    return Promise.resolve({
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify({
-            characterId,
-            goldAmount: 532,
-          }),
-        },
-      ],
-      structuredContent: {
-        characterId,
-        goldAmount: 532,
-      },
-    });
-  }
-);
-
-const traitSchema = z.object({
-  name: z.string().describe("The name of the trait"),
-  description: z
-    .string()
-    .nullable()
-    .optional()
-    .describe("The description of the trait"),
-});
-
-const getItemTraitsOutputSchema = z.object({
-  traits: z.array(traitSchema),
-  success: z.boolean().describe("Whether the query was successful"),
-  error: z.string().optional().describe("Error message if the query failed"),
-});
-
-server.registerTool(
-  "get-item-traits",
-  {
-    title: "Get list of possible traits for an item",
-    description:
-      "Get list of possible traits for an item by querying the GraphQL server",
-    outputSchema: getItemTraitsOutputSchema.shape,
-  },
-  async () => {
-    try {
-      // Use the generated SDK for type-safe GraphQL operations
-      const typedGraphQLService = getSdk(graphQLService.client);
-      const result = await typedGraphQLService.traitListing();
-
-      // Extract traits from the nested structure with full type safety
-      const traits = result.items.getTraits;
-
-      return Promise.resolve({
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              traits: traits.map((trait) => ({
-                name: trait.name,
-                description: trait.description,
-              })),
-              success: true,
-            }),
-          },
-        ],
-        structuredContent: {
-          traits: traits.map((trait) => ({
-            name: trait.name,
-            description: trait.description,
-          })),
-          success: true,
-        },
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-
-      return Promise.resolve({
-        content: [
-          {
-            type: "text",
-            text: `Failed to retrieve item traits: ${errorMessage}`,
-          },
-        ],
-        structuredContent: {
-          traits: [],
-          success: false,
-          error: errorMessage,
-        },
-      });
-    }
-  }
-);
+registerGetInventoryGoldAmountTool(server);
+registerGetItemTraitsTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();
