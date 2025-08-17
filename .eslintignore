@@ -1,0 +1,5 @@
+src/generated/graphql.ts
+build/
+node_modules/
+build/
+dist/

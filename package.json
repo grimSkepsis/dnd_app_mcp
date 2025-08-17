@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
     "start": "node build/index.js",
-    "lint": "eslint .",
+    "lint": "eslint --config eslint.config.ts .",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen --watch"
   },

@@ -49,6 +49,8 @@ const config: CodegenConfig = {
           DateTime: "string",
           JSON: "Record<string, any>",
         },
+        // Use different import style for gql
+        documentMode: "documentNode",
       },
     },
   },

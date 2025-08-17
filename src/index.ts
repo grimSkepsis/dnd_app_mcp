@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { graphQLService } from "./graphql-client.js";
+import { getSdk } from "./generated/graphql.js";
 
 // Create server instance
 const server = new McpServer({
@@ -60,8 +61,8 @@ const traitSchema = z.object({
   name: z.string().describe("The name of the trait"),
   description: z
     .string()
-    .optional()
     .nullable()
+    .optional()
     .describe("The description of the trait"),
 });
 
@@ -81,34 +82,31 @@ server.registerTool(
   },
   async () => {
     try {
-      const query = `
-        query traitListing {
-          items {
-            getTraits {
-              name
-              description
-            }
-          }
-        }
-      `;
+      // Use the generated SDK for type-safe GraphQL operations
+      const typedGraphQLService = getSdk(graphQLService.client);
+      const result = await typedGraphQLService.traitListing();
 
-      const result = await graphQLService.query(query);
-
-      // Extract traits from the nested structure
-      const traits = result?.items?.getTraits || [];
+      // Extract traits from the nested structure with full type safety
+      const traits = result.items.getTraits;
 
       return Promise.resolve({
         content: [
           {
             type: "text",
             text: JSON.stringify({
-              traits,
+              traits: traits.map((trait) => ({
+                name: trait.name,
+                description: trait.description,
+              })),
               success: true,
             }),
           },
         ],
         structuredContent: {
-          traits,
+          traits: traits.map((trait) => ({
+            name: trait.name,
+            description: trait.description,
+          })),
           success: true,
         },
       });

@@ -4,7 +4,7 @@ import { graphQLConfig } from "./config.js";
 // import { GeneratedTypes } from "./generated/graphql.js";
 
 export class GraphQLService {
-  private client: GraphQLClient;
+  private _client: GraphQLClient;
 
   constructor() {
     // Set up headers
@@ -22,9 +22,14 @@ export class GraphQLService {
       headers[graphQLConfig.authHeader] = graphQLConfig.authValue;
     }
 
-    this.client = new GraphQLClient(graphQLConfig.endpoint, {
+    this._client = new GraphQLClient(graphQLConfig.endpoint, {
       headers,
     });
+  }
+
+  // Getter for the GraphQL client (needed for generated SDK)
+  get client(): GraphQLClient {
+    return this._client;
   }
 
   // Generic query method with better typing
@@ -33,7 +38,7 @@ export class GraphQLService {
     variables?: Record<string, unknown>
   ): Promise<T> {
     try {
-      const result = await this.client.request<T>(query, variables);
+      const result = await this._client.request<T>(query, variables);
       return result;
     } catch (error) {
       console.error("GraphQL query failed:", error);
@@ -51,7 +56,7 @@ export class GraphQLService {
     variables?: Record<string, unknown>
   ): Promise<T> {
     try {
-      const result = await this.client.request<T>(mutation, variables);
+      const result = await this._client.request<T>(mutation, variables);
       return result;
     } catch (error) {
       console.error("GraphQL mutation failed:", error);

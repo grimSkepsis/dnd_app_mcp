@@ -1,5 +1,5 @@
 import { GraphQLClient, RequestOptions } from 'graphql-request';
-import gql from 'graphql-tag';
+import { DocumentNode } from 'graphql';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -290,16 +290,7 @@ export type TraitListingQueryVariables = Exact<{ [key: string]: never; }>;
 export type TraitListingQuery = { __typename?: 'QueryRoot', items: { __typename?: 'ItemQuery', getTraits: Array<{ __typename?: 'Trait', name: string, description?: string | null }> } };
 
 
-export const TraitListingDocument = gql`
-    query traitListing {
-  items {
-    getTraits {
-      name
-      description
-    }
-  }
-}
-    `;
+export const TraitListingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"traitListing"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getTraits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
