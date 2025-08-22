@@ -7,7 +7,11 @@
     "weather": "./build/index.js"
   },
   "scripts": {
-    "build": "tsc && chmod 755 build/index.js"
+    "build": "tsc && chmod 755 build/index.js",
+    "start": "node build/index.js",
+    "lint": "eslint --config eslint.config.ts .",
+    "codegen": "graphql-codegen",
+    "codegen:watch": "graphql-codegen --watch"
   },
   "files": [
     "build"
@@ -18,10 +22,23 @@
   "description": "",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
+    "dotenv": "^17.2.1",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
+    "graphql-tag": "^2.12.6",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-graphql-request": "^6.3.0",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
     "@types/node": "^22.14.1",
-    "typescript": "^5.8.3"
+    "eslint": "^9.33.0",
+    "globals": "^16.3.0",
+    "jiti": "^2.5.1",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.39.1"
   }
 }

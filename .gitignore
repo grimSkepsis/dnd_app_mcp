@@ -1,9 +1,10 @@
 node_modules
 build
 .env
+.env.local
+.env.*.local
 .DS_Store
 .vscode
 .idea
 .cursorrules
-.cursorignore
 .cursorignore

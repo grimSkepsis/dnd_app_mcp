@@ -1,6 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { registerGetItemTraitsTool } from "./tools/get-item-traits.js";
+import { registerGetInventoryGoldAmountTool } from "./tools/get-inventory-gold-amount.js";
 
 // Create server instance
 const server = new McpServer({
@@ -12,52 +14,8 @@ const server = new McpServer({
   },
 });
 
-const GetInventoryGoldAmountInputSchema = z.object({
-  characterId: z
-    .string()
-    .describe("The ID of the character to get inventory for"),
-});
-type GetInventoryGoldAmountInput = z.infer<
-  typeof GetInventoryGoldAmountInputSchema
->;
-
-const getInventoryGoldAmountOutputSchema = z.object({
-  characterId: z
-    .string()
-    .describe("The ID of the character to get inventory for"),
-  goldAmount: z.number().describe("The amount of gold in the inventory"),
-});
-
-type GetInventoryGoldAmountOutput = z.infer<
-  typeof getInventoryGoldAmountOutputSchema
->;
-
-server.registerTool(
-  "get-inventory-gold-amount",
-  {
-    title: "Get inventory gold amount for a character by character id",
-    description: "Get inventory gold amount for a character by character id",
-    inputSchema: GetInventoryGoldAmountInputSchema.shape,
-    outputSchema: getInventoryGoldAmountOutputSchema.shape,
-  },
-  ({ characterId }: GetInventoryGoldAmountInput) => {
-    return Promise.resolve({
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify({
-            characterId,
-            goldAmount: 532,
-          }),
-        },
-      ],
-      structuredContent: {
-        characterId,
-        goldAmount: 532,
-      },
-    });
-  }
-);
+registerGetInventoryGoldAmountTool(server);
+registerGetItemTraitsTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();
