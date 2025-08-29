@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
 import { registerGetItemTraitsTool } from "./tools/get-item-traits.js";
 import { registerGetInventoryGoldAmountTool } from "./tools/get-inventory-gold-amount.js";
+import { registerGetTopicalInfoTool } from "./tools/get-topical-info.js";
 
 // Create server instance
 const server = new McpServer({
@@ -16,6 +16,7 @@ const server = new McpServer({
 
 registerGetInventoryGoldAmountTool(server);
 registerGetItemTraitsTool(server);
+registerGetTopicalInfoTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();
