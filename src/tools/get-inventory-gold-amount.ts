@@ -37,13 +37,13 @@ export function registerGetInventoryGoldAmountTool(server: McpServer) {
             type: "text",
             text: JSON.stringify({
               characterId,
-              goldAmount: 534,
+              goldAmount: 666,
             }),
           },
         ],
         structuredContent: {
           characterId,
-          goldAmount: 534,
+          goldAmount: 666,
         },
       });
     }
